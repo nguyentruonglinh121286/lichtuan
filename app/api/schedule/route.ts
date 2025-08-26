@@ -1,26 +1,23 @@
+// app/api/schedule/route.ts
 import { NextResponse } from 'next/server';
-import { readScheduleURL } from '../lib/blob';
+import { getScheduleJson, setScheduleJson } from '../../lib/blob';
 
-// Hàm xử lý yêu cầu GET để lấy dữ liệu lịch làm việc
+export const runtime = 'edge';    // hoặc bỏ dòng này nếu bạn muốn node runtime
+export const revalidate = 0;      // tắt cache khi prerender
+
+// Lấy dữ liệu lịch làm việc
 export async function GET() {
+  const data = await getScheduleJson();
+  return NextResponse.json(data);
+}
+
+// Ghi / cập nhật dữ liệu lịch làm việc (được gọi từ /admin Publish)
+export async function POST(req: Request) {
   try {
-    const url = await readScheduleURL();
-
-    if (!url) {
-        return NextResponse.json({
-          week: 'Lịch làm việc Tuần (chưa có dữ liệu)',
-          days: [],
-        });
-    }
-
-    const res = await fetch(url, { cache: 'no-store' });
-    const json = await res.json();
-    return NextResponse.json(json);
-
-  } catch (e: any) {
-    return NextResponse.json({
-      week: 'Lịch làm việc Tuần (chưa có dữ liệu)',
-      days: [],
-    });
+    const body = await req.json();
+    const url = await setScheduleJson(body);
+    return NextResponse.json({ ok: true, url });
+  } catch (e) {
+    return NextResponse.json({ ok: false, error: 'INVALID_JSON' }, { status: 400 });
   }
 }
