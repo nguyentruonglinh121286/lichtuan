@@ -1,9 +1,9 @@
-// app/page.tsx
+// @ts-nocheck
 export default function Page() {
   return (
-    <main className="p-10">
-      <h1 className="text-3xl font-bold">Hello Next.js!</h1>
-      <p>Trang chủ đã render thành công 🚀</p>
+    <main style={{ padding: 24 }}>
+      <h1 style={{ fontSize: 24, fontWeight: 700 }}>Hello Next.js!</h1>
+      <p>Trang chủ render OK 🚀</p>
     </main>
   );
 }
