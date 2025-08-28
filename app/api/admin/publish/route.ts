@@ -1,15 +1,15 @@
 import { NextResponse } from 'next/server';
-import { setScheduleJson } from '../../../../lib/blob'; // <- 4 dấu .. (QUAN TRỌNG)
+import { writeScheduleJSON } from '@/lib/blob';
 
-export const runtime = 'edge';
+export const runtime = 'nodejs';
 export const revalidate = 0;
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    const url = await setScheduleJson(body);
+    const body = await req.json(); // JSON full schedule
+    const url = await writeScheduleJSON(body);
     return NextResponse.json({ ok: true, url });
-  } catch (e) {
-    return NextResponse.json({ ok: false, error: 'INVALID_JSON' }, { status: 400 });
+  } catch (e: any) {
+    return NextResponse.json({ ok: false, message: e?.message || 'error' }, { status: 500 });
   }
 }
