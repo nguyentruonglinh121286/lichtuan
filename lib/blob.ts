@@ -1,71 +1,40 @@
 // lib/blob.ts
-import { put, list, del } from '@vercel/blob';
+import { list, put } from '@vercel/blob';
 
 const FILE = 'schedule.json';
 
 /**
- * Trả về JSON mặc định khi chưa có dữ liệu
+ * Trả về URL public của schedule.json nếu có trong Blob.
+ * Nếu chưa có thì trả về null.
  */
-function emptySchedule() {
-  return { week: 'Tuần (chưa có dữ liệu)', days: [] };
+export async function readScheduleURL(): Promise<string | null> {
+  // Lấy danh sách các blob, ưu tiên tìm chính xác FILE
+  const { blobs } = await list({ prefix: '' });
+
+  // Tìm file đúng tên
+  let hit = blobs.find(b => b.pathname === FILE);
+
+  // Nếu user từng up vào thư mục (vd: "lich/…/schedule.json") thì fallback:
+  if (!hit) {
+    hit = blobs.find(b => b.pathname.endsWith('/' + FILE));
+  }
+
+  return hit?.url ?? null;
 }
 
 /**
- * Đọc URL của file schedule.json trong Blob Storage
+ * Ghi (publish) JSON lịch lên Vercel Blob với tên cố định schedule.json
+ * => public URL, không kèm hậu tố ngẫu nhiên
  */
-export async function getScheduleUrl(): Promise<string | null> {
-  try {
-    const files = await list();
-    const hit = files.blobs.find((b) => b.pathname === FILE);
-    return hit ? hit.url : null;
-  } catch (err) {
-    console.error('Error list blobs:', err);
-    return null;
-  }
-}
+export async function writeScheduleJSON(data: unknown): Promise<string> {
+  const body =
+    typeof data === 'string' ? data : JSON.stringify(data, null, 2);
 
-/**
- * Đọc dữ liệu JSON lịch tuần
- */
-export async function getScheduleJson() {
-  try {
-    const url = await getScheduleUrl();
-    if (!url) return emptySchedule();
+  const { url } = await put(FILE, body, {
+    access: 'public',
+    contentType: 'application/json; charset=utf-8',
+    addRandomSuffix: false, // luôn ghi đè lên schedule.json
+  });
 
-    const res = await fetch(url, { cache: 'no-store' });
-    if (!res.ok) return emptySchedule();
-
-    return await res.json();
-  } catch (err) {
-    console.error('Error fetch schedule.json:', err);
-    return emptySchedule();
-  }
-}
-
-/**
- * Ghi dữ liệu JSON mới vào Blob Storage
- */
-export async function setScheduleJson(data: any) {
-  try {
-    const json = JSON.stringify(data, null, 2);
-    const blob = await put(FILE, json, {
-      contentType: 'application/json',
-      access: 'public', // để public đọc được ngoài trang chủ
-    });
-    return blob.url;
-  } catch (err) {
-    console.error('Error put schedule.json:', err);
-    throw err;
-  }
-}
-
-/**
- * Xoá file schedule.json (nếu cần reset)
- */
-export async function deleteSchedule() {
-  try {
-    await del(FILE);
-  } catch (err) {
-    console.error('Error delete schedule.json:', err);
-  }
+  return url;
 }
