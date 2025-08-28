@@ -1,46 +1,66 @@
-// components/ScheduleDay.tsx
-type Item = {
-  time: string; host: string; content: string;
-  prepare?: string; participants?: string; location?: string;
+'use client';
+
+export type Item = {
+  time: string;
+  host: string;
+  content: string;
+  prepare?: string;
+  participants?: string;
+  location?: string;
+};
+export type Day = { title: string; items: Item[] };
+
+const th: React.CSSProperties = {
+  padding: '10px 12px',
+  textAlign: 'left',
+  borderRight: '1px solid rgba(255,255,255,0.25)',
+  fontWeight: 700,
+  fontSize: 13,
+};
+const td: React.CSSProperties = {
+  padding: '10px 12px',
+  verticalAlign: 'top',
+  borderTop: '1px solid #e5e7eb',
 };
 
-export default function ScheduleDay({ title, items }: { title: string; items: Item[] }) {
+export default function ScheduleDay({ day }: { day: Day }) {
   return (
-    <div className="mb-8 last:mb-0">
-      <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-4 p-2 rounded-md bg-blue-100 border-l-4 border-blue-500">
-        {title}
-      </h2>
-      <div className="overflow-x-auto">
-        <table className="w-full table-auto border-collapse">
+    <section style={{ marginTop: 24 }}>
+      <h3 style={{ fontWeight: 700, fontSize: 18, marginBottom: 8, color: '#0b3a8c' }}>
+        {day.title}
+      </h3>
+      <div style={{ border: '1px solid #e5e7eb', borderRadius: 8, overflow: 'hidden' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
           <thead>
-            <tr className="bg-blue-200 text-blue-800 uppercase text-xs">
-              <th className="px-4 py-3 border border-gray-300 w-[7%]">Giờ</th>
-              <th className="px-4 py-3 border border-gray-300 w-[15%]">Chủ trì</th>
-              <th className="px-4 py-3 border border-gray-300 w-[45%]">Nội dung</th>
-              <th className="px-4 py-3 border border-gray-300 w-[15%]">Chuẩn bị</th>
-              <th className="px-4 py-3 border border-gray-300 w-[10%]">Thành phần tham dự</th>
-              <th className="px-4 py-3 border border-gray-300 w-[8%]">Địa điểm</th>
+            <tr style={{ background: '#0b3a8c', color: '#fff' }}>
+              <th style={th}>GIỜ</th>
+              <th style={th}>CHỦ TRÌ/DỰ</th>
+              <th style={th}>NỘI DUNG</th>
+              <th style={th}>CHUẨN BỊ</th>
+              <th style={th}>THÀNH PHẦN</th>
+              <th style={th}>ĐỊA ĐIỂM</th>
             </tr>
           </thead>
           <tbody>
-            {items.map((it, i) => (
-              <tr 
-                key={i}
-                className={i % 2 === 0 ? 'bg-gray-50' : 'bg-white'}
-              >
-                <td className="p-3 border border-gray-300 align-top">{it.time || ''}</td>
-                <td className="p-3 border border-gray-300 align-top">{it.host || ''}</td>
-                <td className="p-3 border border-gray-300 align-top">
-                  {(it.content || '').split('\n').map((l, k) => <div key={k}>{l}</div>)}
-                </td>
-                <td className="p-3 border border-gray-300 align-top">{it.prepare || ''}</td>
-                <td className="p-3 border border-gray-300 align-top">{it.participants || ''}</td>
-                <td className="p-3 border border-gray-300 align-top">{it.location || ''}</td>
+            {day.items?.length ? (
+              day.items.map((it, i) => (
+                <tr key={i} style={{ background: i % 2 ? '#fbfdff' : '#fff' }}>
+                  <td style={td}>{it.time || ''}</td>
+                  <td style={td}>{it.host || ''}</td>
+                  <td style={{ ...td, whiteSpace: 'pre-line' }}>{it.content || ''}</td>
+                  <td style={td}>{it.prepare || ''}</td>
+                  <td style={td}>{it.participants || ''}</td>
+                  <td style={td}>{it.location || ''}</td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={6} style={{ ...td, textAlign: 'center' }}>Không có lịch.</td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
       </div>
-    </div>
+    </section>
   );
 }
