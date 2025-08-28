@@ -1,15 +1,13 @@
 import { NextResponse } from 'next/server';
 import { writeScheduleJSON } from '@/lib/blob';
 
-export const runtime = 'nodejs';
-export const revalidate = 0;
-
 export async function POST(req: Request) {
-  try {
-    const body = await req.json(); // JSON full schedule
-    const url = await writeScheduleJSON(body);
-    return NextResponse.json({ ok: true, url });
-  } catch (e: any) {
-    return NextResponse.json({ ok: false, message: e?.message || 'error' }, { status: 500 });
+  const pass = req.headers.get('x-admin-password');
+  if (process.env.ADMIN_PASSWORD && pass !== process.env.ADMIN_PASSWORD) {
+    return NextResponse.json({ ok: false, message: 'Unauthorized' }, { status: 401 });
   }
+
+  const json = await req.json();
+  const url = await writeScheduleJSON(json);
+  return NextResponse.json({ ok: true, url });
 }
