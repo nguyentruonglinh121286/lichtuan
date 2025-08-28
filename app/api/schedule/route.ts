@@ -1,12 +1,19 @@
 import { NextResponse } from 'next/server';
-import { getScheduleJson } from '../../../lib/blob';  // <- 3 dấu .. (QUAN TRỌNG)
+import { readScheduleURL } from '@/lib/blob';
 
-export const runtime = 'edge';
+export const runtime = 'nodejs';     // hoặc 'edge' nếu không gọi SDK đặc thù
 export const revalidate = 0;
 
 export async function GET() {
-  const data = await getScheduleJson();
-  return NextResponse.json(data, {
-    headers: { 'Cache-Control': 'no-store, must-revalidate' },
-  });
+  try {
+    const url = await readScheduleURL();
+    if (!url) {
+      return NextResponse.json({ week: 'Tuần (chưa có dữ liệu)', days: [] });
+    }
+    const res = await fetch(url, { cache: 'no-store' });
+    const json = await res.json();
+    return NextResponse.json(json);
+  } catch {
+    return NextResponse.json({ week: 'Tuần (chưa có dữ liệu)', days: [] });
+  }
 }
