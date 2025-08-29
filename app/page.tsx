@@ -1,7 +1,6 @@
 // app/page.tsx
-import PrintButton from './components/PrintButton';
-import ScheduleDay from './components/ScheduleDay';
-
+import PrintButton from '@components/PrintButton';
+import ScheduleDay from '@components/ScheduleDay';
 export const revalidate = 0; // luôn lấy mới
 
 type Item = {
