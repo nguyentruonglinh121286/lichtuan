@@ -1,92 +1,71 @@
-'use client';
+// app/page.tsx
+import PrintButton from '../components/PrintButton';
+import ScheduleDay from '../components/ScheduleDay';
 
-import React from 'react';
-import PrintButton from '@/components/PrintButton';
-import ScheduleDay, { Day } from '@/components/ScheduleDay';
+export const revalidate = 0; // luôn lấy mới
 
+type Item = {
+  time: string;
+  host?: string;
+  content: string;
+  prepare?: string;
+  participants?: string;
+  location?: string;
+}
+type Day = {
+  title: string;
+  note?: string;
+  items: Item[];
+}
 type Schedule = {
   week: string;
   note?: string;
   highlights?: string[];
   days: Day[];
-};
-
-const printCSS = `
-@media print {
-  body { background: #fff !important; }
-  .no-print { display: none !important; }
-  .card { box-shadow: none !important; margin: 0 !important; max-width: 100% !important; padding: 0 !important; }
-  header { padding: 12px 0 0 !important; }
-  table { page-break-inside: auto !important; }
-  h3, table { page-break-after: avoid !important; }
 }
-`;
-const card: React.CSSProperties = {
-  margin: '0 auto',
-  maxWidth: 1100,
-  background: '#fff',
-  borderRadius: 12,
-  padding: 20,
-  boxShadow: '0 6px 24px rgba(0,0,0,0.06)',
-};
 
-export default function Page() {
-  const [data, setData] = React.useState<Schedule | null>(null);
-  const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState('');
+export default async function Page() {
+  // gọi API nội bộ, tắt cache để lấy dữ liệu mới nhất
+  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL ?? ''}/api/schedule`, {
+    cache: 'no-store',
+  }).catch(() => null);
 
-  React.useEffect(() => {
-    let alive = true;
-    (async () => {
-      try {
-        const res = await fetch('/api/schedule', { cache: 'no-store' });
-        if (!res.ok) throw new Error('Không tải được dữ liệu');
-        const json = (await res.json()) as Schedule;
-        if (alive) setData(json);
-      } catch (e: any) { if (alive) setError(e?.message || 'Lỗi'); }
-      finally { if (alive) setLoading(false); }
-    })();
-    return () => { alive = false; };
-  }, []);
+  const data: Schedule | null = res && res.ok ? await res.json() : null;
 
   return (
-    <main style={{ padding: 24, background: '#f6f8fa', minHeight: '100vh' }}>
-      <style>{printCSS}</style>
-      <div className="card" style={card}>
-        <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <main className="mx-auto max-w-6xl p-4 sm:p-6 lg:p-8">
+      <section className="rounded-xl bg-white p-4 sm:p-6 shadow">
+        <header className="flex items-start justify-between gap-4">
           <div>
-            <h1 style={{ margin: 0, fontSize: 28, fontWeight: 800, color: '#0b3a8c' }}>LỊCH LÀM VIỆC</h1>
-            <div style={{ color: '#6b7280', marginTop: 6 }}>
-              {data?.week ? data.week : 'Tuần (chưa có dữ liệu)'}
-            </div>
+            <h1 className="text-3xl font-extrabold tracking-tight text-blue-700">
+              LỊCH LÀM VIỆC
+            </h1>
+            <p className="mt-1 text-gray-500">
+              {data?.week ?? 'Tuần (chưa có dữ liệu)'}
+            </p>
           </div>
+
           <PrintButton />
         </header>
 
-        <hr style={{ border: 'none', borderTop: '1px solid #e5e7eb', margin: '16px 0 0' }} />
-
-        {loading && <p style={{ padding: '16px 0', color: '#6b7280' }}>Đang tải dữ liệu…</p>}
-        {!loading && error && <p style={{ padding: '16px 0', color: '#b91c1c' }}>Lỗi: {error}</p>}
-
-        {!loading && !error && !!data?.highlights?.length && (
-          <div style={{ marginTop: 16, padding: 12, borderRadius: 8, background: '#eef2ff', border: '1px solid #dbeafe' }}>
-            <div style={{ fontWeight: 700, marginBottom: 6, color: '#1e3a8a' }}>Nội dung trọng tâm</div>
-            <ul style={{ margin: 0, paddingLeft: 20 }}>
-              {data!.highlights!.map((h, i) => <li key={i} style={{ margin: '4px 0', whiteSpace: 'pre-line' }}>{h}</li>)}
+        {data?.highlights?.length ? (
+          <div className="mt-4 rounded-lg bg-blue-50 p-3 text-sm text-blue-900">
+            <ul className="list-disc list-inside space-y-1">
+              {data.highlights.map((h, i) => (
+                <li key={i}>{h}</li>
+              ))}
             </ul>
           </div>
-        )}
+        ) : null}
 
-        {!loading && !error && data?.note && (
-          <div style={{ marginTop: 12, color: '#374151' }}>
-            <em>{data.note}</em>
-          </div>
-        )}
-
-        {!loading && !error && data?.days?.length ? data.days.map((d, i) => (
-          <ScheduleDay key={i} day={d} />
-        )) : null}
-      </div>
+        <div className="mt-6 space-y-6 print:space-y-4">
+          {data?.days?.length
+            ? data.days.map((day) => <ScheduleDay key={day.title} day={day} />)
+            : (
+              <div className="text-gray-500">Chưa có dữ liệu.</div>
+            )}
+        </div>
+      </section>
     </main>
   );
 }
