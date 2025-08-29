@@ -1,66 +1,38 @@
-'use client';
-
-export type Item = {
+type Item = {
   time: string;
-  host: string;
+  host?: string;
   content: string;
   prepare?: string;
   participants?: string;
   location?: string;
 };
-export type Day = { title: string; items: Item[] };
 
-const th: React.CSSProperties = {
-  padding: '10px 12px',
-  textAlign: 'left',
-  borderRight: '1px solid rgba(255,255,255,0.25)',
-  fontWeight: 700,
-  fontSize: 13,
-};
-const td: React.CSSProperties = {
-  padding: '10px 12px',
-  verticalAlign: 'top',
-  borderTop: '1px solid #e5e7eb',
+type Day = {
+  title: string;
+  note?: string;
+  items: Item[];
 };
 
 export default function ScheduleDay({ day }: { day: Day }) {
   return (
-    <section style={{ marginTop: 24 }}>
-      <h3 style={{ fontWeight: 700, fontSize: 18, marginBottom: 8, color: '#0b3a8c' }}>
-        {day.title}
-      </h3>
-      <div style={{ border: '1px solid #e5e7eb', borderRadius: 8, overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
-          <thead>
-            <tr style={{ background: '#0b3a8c', color: '#fff' }}>
-              <th style={th}>GIỜ</th>
-              <th style={th}>CHỦ TRÌ/DỰ</th>
-              <th style={th}>NỘI DUNG</th>
-              <th style={th}>CHUẨN BỊ</th>
-              <th style={th}>THÀNH PHẦN</th>
-              <th style={th}>ĐỊA ĐIỂM</th>
-            </tr>
-          </thead>
-          <tbody>
-            {day.items?.length ? (
-              day.items.map((it, i) => (
-                <tr key={i} style={{ background: i % 2 ? '#fbfdff' : '#fff' }}>
-                  <td style={td}>{it.time || ''}</td>
-                  <td style={td}>{it.host || ''}</td>
-                  <td style={{ ...td, whiteSpace: 'pre-line' }}>{it.content || ''}</td>
-                  <td style={td}>{it.prepare || ''}</td>
-                  <td style={td}>{it.participants || ''}</td>
-                  <td style={td}>{it.location || ''}</td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan={6} style={{ ...td, textAlign: 'center' }}>Không có lịch.</td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+    <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
+      <div className="border-b border-gray-200 bg-gray-50 px-4 py-2 font-semibold text-gray-700">
+        {day.title} {day.note ? <span className="ml-2 text-sm text-gray-500">({day.note})</span> : null}
       </div>
-    </section>
+      <ul className="divide-y divide-gray-200">
+        {day.items.map((item, idx) => (
+          <li key={idx} className="px-4 py-2">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+              <span className="font-medium text-blue-700">{item.time}</span>
+              {item.host && <span className="text-sm text-gray-600">Chủ trì: {item.host}</span>}
+            </div>
+            <div className="mt-1 text-gray-800">{item.content}</div>
+            {item.prepare && <div className="text-sm text-gray-500">Chuẩn bị: {item.prepare}</div>}
+            {item.participants && <div className="text-sm text-gray-500">Thành phần: {item.participants}</div>}
+            {item.location && <div className="text-sm text-gray-500">Địa điểm: {item.location}</div>}
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
