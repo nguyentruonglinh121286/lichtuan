@@ -1,9 +1,5 @@
-// app/api/schedule/route.ts
 import { NextResponse } from 'next/server';
-import { readScheduleURL } from '../../../lib/blob';
-
-export const runtime = 'edge';
-export const revalidate = 0;
+import { readScheduleURL } from '../../../lib/blob';  // <-- sửa thành relative
 
 export async function GET() {
   try {
@@ -16,7 +12,7 @@ export async function GET() {
     const res = await fetch(url, { cache: 'no-store' });
     const json = await res.json();
     return NextResponse.json(json);
-  } catch (e: any) {
+  } catch {
     return NextResponse.json({ week: 'Tuần (chưa có dữ liệu)', days: [] });
   }
 }
