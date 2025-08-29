@@ -3,7 +3,7 @@ import { list, put } from '@vercel/blob';
 
 const FILE = 'schedule.json';
 
-/** Trả về URL public của schedule.json (null nếu chưa có) */
+/** Lấy URL public của schedule.json (null nếu chưa có) */
 export async function readScheduleURL(): Promise<string | null> {
   try {
     const { blobs } = await list();
