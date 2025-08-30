@@ -1,8 +1,8 @@
-// app/api/schedule/route.ts
 export const runtime = 'edge';
 export const revalidate = 0;
 
 import { NextResponse } from 'next/server';
+// app/api/schedule/route.ts  →  app/lib/blob.ts
 import { readScheduleURL } from '../../lib/blob';
 
 export async function GET() {
