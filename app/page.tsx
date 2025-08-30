@@ -5,7 +5,6 @@ import PrintButton from '../components/PrintButton';
 import ScheduleDay from '../components/ScheduleDay';
 
 async function getSchedule() {
-  // Gọi API phía server, không cache
   const res = await fetch('/api/schedule', { cache: 'no-store' });
   if (!res.ok) {
     return { week: 'Tuần (chưa có dữ liệu)', days: [] as any[] };
