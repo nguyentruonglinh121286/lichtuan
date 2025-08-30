@@ -1,16 +1,11 @@
+// components/PrintButton.tsx
 'use client';
 
 export default function PrintButton() {
-  const handlePrint = () => {
-    if (typeof window !== 'undefined') {
-      window.print();
-    }
-  };
-
   return (
     <button
-      onClick={handlePrint}
-      className="rounded bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 print:hidden"
+      onClick={() => window.print()}
+      className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 print:hidden"
     >
       In / Lưu PDF
     </button>
