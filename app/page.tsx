@@ -1,10 +1,15 @@
+// app/page.tsx
 export const revalidate = 0;
 
-import PrintButton from '../components/PrintButton';     // hoặc './components/PrintButton'
-import ScheduleDay from '../components/ScheduleDay';     // hoặc './components/ScheduleDay'
+import PrintButton from '../components/PrintButton';
+import ScheduleDay from '../components/ScheduleDay';
 
 async function getSchedule() {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL ?? ''}/api/schedule`, { cache: 'no-store' });
+  // Gọi API phía server, không cache
+  const res = await fetch('/api/schedule', { cache: 'no-store' });
+  if (!res.ok) {
+    return { week: 'Tuần (chưa có dữ liệu)', days: [] as any[] };
+  }
   return res.json();
 }
 
