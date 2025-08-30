@@ -1,7 +1,8 @@
+// components/ScheduleDay.tsx
 type Item = {
-  time: string;
+  time?: string;
   host?: string;
-  content: string;
+  content?: string;
   prepare?: string;
   participants?: string;
   location?: string;
@@ -15,24 +16,41 @@ type Day = {
 
 export default function ScheduleDay({ day }: { day: Day }) {
   return (
-    <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
-      <div className="border-b border-gray-200 bg-gray-50 px-4 py-2 font-semibold text-gray-700">
-        {day.title} {day.note ? <span className="ml-2 text-sm text-gray-500">({day.note})</span> : null}
+    <section className="rounded-lg border bg-white shadow-sm">
+      <header className="border-b px-4 py-2 font-semibold">{day.title}</header>
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[900px] table-fixed text-sm">
+          <thead className="bg-blue-800 text-white">
+            <tr>
+              <th className="w-20 px-2 py-2 text-left">GIỜ</th>
+              <th className="w-56 px-2 py-2 text-left">CHỦ TRÌ/DỰ</th>
+              <th className="px-2 py-2 text-left">NỘI DUNG</th>
+              <th className="w-44 px-2 py-2 text-left">CHUẨN BỊ</th>
+              <th className="w-40 px-2 py-2 text-left">THÀNH PHẦN</th>
+              <th className="w-32 px-2 py-2 text-left">ĐỊA ĐIỂM</th>
+            </tr>
+          </thead>
+          <tbody>
+            {day.items?.map((it, idx) => (
+              <tr key={idx} className="odd:bg-gray-50">
+                <td className="px-2 py-2 align-top">{it.time ?? ''}</td>
+                <td className="px-2 py-2 align-top">{it.host ?? ''}</td>
+                <td className="px-2 py-2 align-top whitespace-pre-wrap">
+                  {it.content ?? ''}
+                </td>
+                <td className="px-2 py-2 align-top">{it.prepare ?? ''}</td>
+                <td className="px-2 py-2 align-top">{it.participants ?? ''}</td>
+                <td className="px-2 py-2 align-top">{it.location ?? ''}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
-      <ul className="divide-y divide-gray-200">
-        {day.items.map((item, idx) => (
-          <li key={idx} className="px-4 py-2">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-              <span className="font-medium text-blue-700">{item.time}</span>
-              {item.host && <span className="text-sm text-gray-600">Chủ trì: {item.host}</span>}
-            </div>
-            <div className="mt-1 text-gray-800">{item.content}</div>
-            {item.prepare && <div className="text-sm text-gray-500">Chuẩn bị: {item.prepare}</div>}
-            {item.participants && <div className="text-sm text-gray-500">Thành phần: {item.participants}</div>}
-            {item.location && <div className="text-sm text-gray-500">Địa điểm: {item.location}</div>}
-          </li>
-        ))}
-      </ul>
-    </div>
+      {day.note ? (
+        <footer className="border-t px-3 py-2 text-xs italic text-gray-600">
+          {day.note}
+        </footer>
+      ) : null}
+    </section>
   );
 }
