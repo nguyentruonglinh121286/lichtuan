@@ -1,55 +1,36 @@
-// app/page.tsx
-import PrintButton from '../components/PrintButton';
-import ScheduleDay from '../components/ScheduleDay';
 export const revalidate = 0;
 
-type Item = {
-  time: string;
-  host?: string;
-  content: string;
-  prepare?: string;
-  participants?: string;
-  location?: string;
-};
-type Day = { title: string; note?: string; items: Item[] };
-type Schedule = { week: string; note?: string; highlights?: string[]; days: Day[] };
+import PrintButton from '../components/PrintButton';     // hoặc './components/PrintButton'
+import ScheduleDay from '../components/ScheduleDay';     // hoặc './components/ScheduleDay'
+
+async function getSchedule() {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL ?? ''}/api/schedule`, { cache: 'no-store' });
+  return res.json();
+}
 
 export default async function Page() {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL ?? ''}/api/schedule`, {
-    cache: 'no-store',
-  }).catch(() => null);
-
-  const data: Schedule | null = res && res.ok ? await res.json() : null;
+  const data = await getSchedule();
+  const week = data?.week ?? 'Tuần (chưa có dữ liệu)';
+  const days = data?.days ?? [];
 
   return (
-    <main className="mx-auto max-w-6xl p-4 sm:p-6 lg:p-8">
-      <section className="rounded-xl bg-white p-4 sm:p-6 shadow">
-        <header className="flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-extrabold tracking-tight text-blue-700">
-              LỊCH LÀM VIỆC
-            </h1>
-            <p className="mt-1 text-gray-500">{data?.week ?? 'Tuần (chưa có dữ liệu)'}</p>
-          </div>
-          <PrintButton />
-        </header>
+    <main className="mx-auto max-w-5xl px-4 py-8">
+      <div className="mb-4 flex items-center justify-between">
+        <h1 className="text-3xl font-extrabold text-blue-700">LỊCH LÀM VIỆC</h1>
+        <PrintButton />
+      </div>
 
-        {data?.highlights?.length ? (
-          <div className="mt-4 rounded-lg bg-blue-50 p-3 text-sm text-blue-900">
-            <ul className="list-disc list-inside space-y-1">
-              {data.highlights.map((h, i) => <li key={i}>{h}</li>)}
-            </ul>
-          </div>
-        ) : null}
+      <p className="mb-6 text-gray-600">{week}</p>
 
-        <div className="mt-6 space-y-6 print:space-y-4">
-          {data?.days?.length ? (
-            data.days.map((day) => <ScheduleDay key={day.title} day={day} />)
-          ) : (
-            <div className="text-gray-500">Chưa có dữ liệu.</div>
-          )}
-        </div>
-      </section>
+      <div className="space-y-4">
+        {days.length === 0 ? (
+          <div className="rounded border border-dashed p-8 text-center text-gray-500">
+            Tuần này chưa có dữ liệu.
+          </div>
+        ) : (
+          days.map((day: any, i: number) => <ScheduleDay key={i} day={day} />)
+        )}
+      </div>
     </main>
   );
 }
