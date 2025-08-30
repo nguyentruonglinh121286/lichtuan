@@ -1,9 +1,9 @@
+// app/api/schedule/route.ts
 export const runtime = 'edge';
 export const revalidate = 0;
 
 import { NextResponse } from 'next/server';
-// SAI trước đây: '../../lib/blob'
-import { readScheduleURL } from '../../../lib/blob';  // <-- 3 dấu .. lên tới root rồi /lib/blob
+import { readScheduleURL } from '../../lib/blob';
 
 export async function GET() {
   try {
