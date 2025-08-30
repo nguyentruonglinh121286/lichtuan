@@ -1,9 +1,9 @@
+// app/api/admin/publish/route.ts
 export const runtime = 'edge';
 export const revalidate = 0;
 
 import { NextResponse } from 'next/server';
-// đi 4 bậc: publish -> admin -> api -> app -> (root) -> lib/blob
-import { writeScheduleJSON } from '../../../../lib/blob';
+import { writeScheduleJSON } from '../../../lib/blob';
 
 export async function POST(req: Request) {
   try {
