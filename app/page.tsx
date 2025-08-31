@@ -1,11 +1,18 @@
 // app/page.tsx
-export const revalidate = 0;
-
+import { headers } from 'next/headers';
 import PrintButton from '../components/PrintButton';
 import ScheduleDay from '../components/ScheduleDay';
 
+export const revalidate = 0;
+
 async function getSchedule() {
-  const res = await fetch('/api/schedule', { cache: 'no-store' });
+  // Lấy Host hiện tại → tạo absolute URL cho SSR
+  const h = headers();
+  const host = h.get('host') ?? 'localhost:3000';
+  const protocol = process.env.VERCEL ? 'https' : 'http';
+  const url = `${protocol}://${host}/api/schedule`;
+
+  const res = await fetch(url, { cache: 'no-store' });
   if (!res.ok) {
     return { week: 'Tuần (chưa có dữ liệu)', days: [] as any[] };
   }
@@ -26,10 +33,10 @@ export default async function Page() {
 
       <p className="mb-6 text-gray-600">{week}</p>
 
-      <div className="space-y-4">
+      <div className="space-y-6">
         {days.length === 0 ? (
-          <div className="rounded border border-dashed p-8 text-center text-gray-500">
-            Tuần này chưa có dữ liệu.
+          <div className="rounded-lg border p-6 text-gray-500">
+            Tuần (chưa có dữ liệu)
           </div>
         ) : (
           days.map((day: any, i: number) => <ScheduleDay key={i} day={day} />)
