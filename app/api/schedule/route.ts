@@ -1,9 +1,8 @@
-export const runtime = 'edge';
+export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 import { NextResponse } from 'next/server';
-// app/api/schedule/route.ts  →  app/lib/blob.ts
-import { readScheduleURL } from '../../lib/blob';
+import { readScheduleURL } from '../../lib/blob'; // đường đúng với repo của bạn
 
 export async function GET() {
   try {
@@ -11,7 +10,8 @@ export async function GET() {
     if (!url) {
       return NextResponse.json({ week: 'Tuần (chưa có dữ liệu)', days: [] });
     }
-    const res = await fetch(url, { cache: 'no-store' });
+    // cache-busting query
+    const res = await fetch(`${url}?t=${Date.now()}`, { cache: 'no-store' });
     const json = await res.json();
     return NextResponse.json(json);
   } catch {
