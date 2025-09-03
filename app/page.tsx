@@ -1,19 +1,23 @@
-// app/page.tsx
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 import PrintButton from '@/components/PrintButton';
 import ScheduleDay from '@/components/ScheduleDay';
-import { readScheduleURL } from '@/app/lib/blob'; // đọc trực tiếp URL blob
+import { readScheduleURL } from '@/app/lib/blob';
 
+// Hàm lấy dữ liệu trực tiếp từ Blob
 async function getSchedule() {
   try {
     const url = await readScheduleURL();
     if (!url) return { week: 'Tuần (chưa có dữ liệu)', days: [] };
+
+    // phá cache CDN bằng query string
     const res = await fetch(`${url}?t=${Date.now()}`, { cache: 'no-store' });
     if (!res.ok) return { week: 'Tuần (chưa có dữ liệu)', days: [] };
+
     return res.json();
-  } catch {
+  } catch (err) {
+    console.error('getSchedule error:', err);
     return { week: 'Tuần (chưa có dữ liệu)', days: [] };
   }
 }
