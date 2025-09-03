@@ -3,7 +3,6 @@ import { list, put } from '@vercel/blob';
 
 const FILE = 'schedule.json';
 
-/** Lấy URL public của schedule.json nếu đã có (null nếu chưa có) */
 export async function readScheduleURL(): Promise<string | null> {
   try {
     const { blobs } = await list();
@@ -14,7 +13,6 @@ export async function readScheduleURL(): Promise<string | null> {
   }
 }
 
-/** Ghi JSON vào Vercel Blob (public) với tên schedule.json */
 export async function writeScheduleJSON(data: unknown): Promise<string> {
   const body = JSON.stringify(data, null, 2);
   const { url } = await put(FILE, body, {
@@ -22,6 +20,5 @@ export async function writeScheduleJSON(data: unknown): Promise<string> {
     addRandomSuffix: false,
     contentType: 'application/json; charset=utf-8',
   });
-  return url;
+  return url; // có thể list() lại để chắc chắn có URL mới nhất
 }
-
