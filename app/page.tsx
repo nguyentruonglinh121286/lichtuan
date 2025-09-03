@@ -1,25 +1,25 @@
+// app/page.tsx
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
+import { headers } from 'next/headers';
 import PrintButton from '@/components/PrintButton';
 import ScheduleDay from '@/components/ScheduleDay';
-import { readScheduleURL } from '@/app/lib/blob';
 
-// Hàm lấy dữ liệu trực tiếp từ Blob
+// Lấy base URL tuyệt đối từ headers (hoạt động ở Vercel/preview/prod & local)
+function getBaseUrl() {
+  const h = headers();
+  const host = h.get('x-forwarded-host') ?? h.get('host') ?? 'localhost:3000';
+  const proto = h.get('x-forwarded-proto') ?? (host.includes('localhost') ? 'http' : 'https');
+  return `${proto}://${host}`;
+}
+
 async function getSchedule() {
-  try {
-    const url = await readScheduleURL();
-    if (!url) return { week: 'Tuần (chưa có dữ liệu)', days: [] };
-
-    // phá cache CDN bằng query string
-    const res = await fetch(`${url}?t=${Date.now()}`, { cache: 'no-store' });
-    if (!res.ok) return { week: 'Tuần (chưa có dữ liệu)', days: [] };
-
-    return res.json();
-  } catch (err) {
-    console.error('getSchedule error:', err);
-    return { week: 'Tuần (chưa có dữ liệu)', days: [] };
-  }
+  const base = getBaseUrl();
+  const url = new URL('/api/schedule', base);
+  const res = await fetch(url, { cache: 'no-store' });
+  if (!res.ok) return { week: 'Tuần (chưa có dữ liệu)', days: [] };
+  return res.json();
 }
 
 export default async function Page() {
