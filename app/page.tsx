@@ -2,11 +2,16 @@
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-import PrintButton from '../components/PrintButton';
-import ScheduleDay from '../components/ScheduleDay';
+import PrintButton from '@/components/PrintButton';
+import ScheduleDay from '@/components/ScheduleDay';
 
 async function getSchedule() {
-  const res = await fetch('/api/schedule', { cache: 'no-store' });
+  const baseUrl =
+    process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : 'http://localhost:3000';
+
+  const res = await fetch(`${baseUrl}/api/schedule`, { cache: 'no-store' });
   if (!res.ok) return { week: 'Tuần (chưa có dữ liệu)', days: [] };
   return res.json();
 }
@@ -14,7 +19,7 @@ async function getSchedule() {
 export default async function Page() {
   const data = await getSchedule();
 
-  const agency = data?.agency ?? null; // {name, subtitle}
+  const agency = data?.agency ?? null;
   const focus: string[] = Array.isArray(data?.focus) ? data.focus : [];
   const week = data?.week ?? 'Tuần (chưa có dữ liệu)';
   const days = Array.isArray(data?.days) ? data.days : [];
@@ -27,17 +32,15 @@ export default async function Page() {
           <h1 className="text-3xl font-extrabold tracking-tight text-blue-700">
             {agency?.name ?? 'LỊCH LÀM VIỆC'}
           </h1>
-          {agency?.subtitle ? (
+          {agency?.subtitle && (
             <p className="text-sm text-gray-600">{agency.subtitle}</p>
-          ) : null}
+          )}
         </div>
         <PrintButton />
       </div>
 
-      {/* Tuần */}
       <p className="mb-4 text-[15px] font-medium text-gray-700">{week}</p>
 
-      {/* Trọng tâm tuần */}
       {focus.length > 0 && (
         <section className="mb-6 rounded-xl border border-blue-100 bg-blue-50/40 p-4">
           <h2 className="mb-2 text-base font-semibold text-blue-700">
@@ -45,13 +48,12 @@ export default async function Page() {
           </h2>
           <ul className="list-disc pl-6 text-sm text-gray-700">
             {focus.map((f, i) => (
-              <li key={i} className="mb-1">{f}</li>
+              <li key={i}>{f}</li>
             ))}
           </ul>
         </section>
       )}
 
-      {/* Các ngày trong tuần */}
       <div className="space-y-6">
         {days.map((day: any, idx: number) => (
           <ScheduleDay key={idx} day={day} />
