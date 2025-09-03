@@ -1,46 +1,31 @@
-// components/ScheduleDay.tsx
-export default function ScheduleDay({ day }: { day: any }) {
-  const items = Array.isArray(day.items) ? day.items : [];
-  return (
-    <article className="rounded-2xl border border-slate-200 bg-white p-0 shadow-sm">
-      <div className="rounded-t-2xl bg-gradient-to-r from-sky-600 to-blue-600 px-4 py-3 text-white">
-        <h4 className="text-lg font-semibold">{day.title}</h4>
-      </div>
-
-      <div className="overflow-x-auto p-4">
-        <table className="w-full border-collapse text-sm">
-          <thead className="sticky top-0 z-10 bg-slate-50 text-slate-600">
-            <tr>
-              <th className="w-[80px] border-b p-2 text-left">GIỜ</th>
-              <th className="w-[160px] border-b p-2 text-left">CHỦ TRÌ/DỰ</th>
-              <th className="border-b p-2 text-left">NỘI DUNG</th>
-              <th className="w-[140px] border-b p-2 text-left">CHUẨN BỊ</th>
-              <th className="w-[180px] border-b p-2 text-left">THÀNH PHẦN</th>
-              <th className="w-[160px] border-b p-2 text-left">ĐỊA ĐIỂM</th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.length === 0 ? (
-              <tr>
-                <td className="p-3 text-slate-500" colSpan={6}>
-                  Không có lịch.
-                </td>
-              </tr>
-            ) : (
-              items.map((it: any, idx: number) => (
-                <tr key={idx} className="even:bg-slate-50/40 hover:bg-sky-50/60">
-                  <td className="p-2 align-top font-medium text-slate-700">{it.time || ''}</td>
-                  <td className="p-2 align-top">{it.host || ''}</td>
-                  <td className="p-2 align-top">{it.content || ''}</td>
-                  <td className="p-2 align-top text-slate-700">{it.prepare || ''}</td>
-                  <td className="p-2 align-top">{it.participants || ''}</td>
-                  <td className="p-2 align-top">{it.location || ''}</td>
-                </tr>
-              ))
+// components/ScheduleDay.tsx (chỗ dùng day.items.map)
+const items = Array.isArray(day?.items) ? day.items : [];
+return (
+  <div className="rounded-xl border border-gray-200 bg-white shadow-sm">
+    {/* ... header ngày ... */}
+    {items.length === 0 ? (
+      <div className="px-4 py-3 text-sm text-gray-500">Không có nội dung.</div>
+    ) : (
+      <ul className="divide-y divide-gray-100">
+        {items.map((it, i) => (
+          <li key={i} className="px-4 py-3">
+            {/* render it.time, it.host, it.content... với optional chaining */}
+            <div className="text-sm">
+              <span className="font-medium">{it?.time}</span>{' '}
+              {it?.host && <span>– {it.host}</span>}
+              {it?.content && <span>: {it.content}</span>}
+            </div>
+            {(it?.prepare || it?.participants || it?.location || it?.note) && (
+              <div className="mt-1 text-xs text-gray-600">
+                {it?.prepare && <div>Chuẩn bị: {it.prepare}</div>}
+                {it?.participants && <div>Thành phần: {it.participants}</div>}
+                {it?.location && <div>Địa điểm: {it.location}</div>}
+                {it?.note && <div>Ghi chú: {it.note}</div>}
+              </div>
             )}
-          </tbody>
-        </table>
-      </div>
-    </article>
-  );
-}
+          </li>
+        ))}
+      </ul>
+    )}
+  </div>
+);
