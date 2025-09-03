@@ -1,56 +1,46 @@
 // components/ScheduleDay.tsx
-type Item = {
-  time?: string;
-  host?: string;
-  content?: string;
-  prepare?: string;
-  participants?: string;
-  location?: string;
-};
-
-type Day = {
-  title: string;
-  note?: string;
-  items: Item[];
-};
-
-export default function ScheduleDay({ day }: { day: Day }) {
+export default function ScheduleDay({ day }: { day: any }) {
+  const items = Array.isArray(day.items) ? day.items : [];
   return (
-    <section className="rounded-lg border bg-white shadow-sm">
-      <header className="border-b px-4 py-2 font-semibold">{day.title}</header>
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[900px] table-fixed text-sm">
-          <thead className="bg-blue-800 text-white">
+    <article className="rounded-2xl border border-slate-200 bg-white p-0 shadow-sm">
+      <div className="rounded-t-2xl bg-gradient-to-r from-sky-600 to-blue-600 px-4 py-3 text-white">
+        <h4 className="text-lg font-semibold">{day.title}</h4>
+      </div>
+
+      <div className="overflow-x-auto p-4">
+        <table className="w-full border-collapse text-sm">
+          <thead className="sticky top-0 z-10 bg-slate-50 text-slate-600">
             <tr>
-              <th className="w-20 px-2 py-2 text-left">GIỜ</th>
-              <th className="w-56 px-2 py-2 text-left">CHỦ TRÌ/DỰ</th>
-              <th className="px-2 py-2 text-left">NỘI DUNG</th>
-              <th className="w-44 px-2 py-2 text-left">CHUẨN BỊ</th>
-              <th className="w-40 px-2 py-2 text-left">THÀNH PHẦN</th>
-              <th className="w-32 px-2 py-2 text-left">ĐỊA ĐIỂM</th>
+              <th className="w-[80px] border-b p-2 text-left">GIỜ</th>
+              <th className="w-[160px] border-b p-2 text-left">CHỦ TRÌ/DỰ</th>
+              <th className="border-b p-2 text-left">NỘI DUNG</th>
+              <th className="w-[140px] border-b p-2 text-left">CHUẨN BỊ</th>
+              <th className="w-[180px] border-b p-2 text-left">THÀNH PHẦN</th>
+              <th className="w-[160px] border-b p-2 text-left">ĐỊA ĐIỂM</th>
             </tr>
           </thead>
           <tbody>
-            {day.items?.map((it, idx) => (
-              <tr key={idx} className="odd:bg-gray-50">
-                <td className="px-2 py-2 align-top">{it.time ?? ''}</td>
-                <td className="px-2 py-2 align-top">{it.host ?? ''}</td>
-                <td className="px-2 py-2 align-top whitespace-pre-wrap">
-                  {it.content ?? ''}
+            {items.length === 0 ? (
+              <tr>
+                <td className="p-3 text-slate-500" colSpan={6}>
+                  Không có lịch.
                 </td>
-                <td className="px-2 py-2 align-top">{it.prepare ?? ''}</td>
-                <td className="px-2 py-2 align-top">{it.participants ?? ''}</td>
-                <td className="px-2 py-2 align-top">{it.location ?? ''}</td>
               </tr>
-            ))}
+            ) : (
+              items.map((it: any, idx: number) => (
+                <tr key={idx} className="even:bg-slate-50/40 hover:bg-sky-50/60">
+                  <td className="p-2 align-top font-medium text-slate-700">{it.time || ''}</td>
+                  <td className="p-2 align-top">{it.host || ''}</td>
+                  <td className="p-2 align-top">{it.content || ''}</td>
+                  <td className="p-2 align-top text-slate-700">{it.prepare || ''}</td>
+                  <td className="p-2 align-top">{it.participants || ''}</td>
+                  <td className="p-2 align-top">{it.location || ''}</td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
-      {day.note ? (
-        <footer className="border-t px-3 py-2 text-xs italic text-gray-600">
-          {day.note}
-        </footer>
-      ) : null}
-    </section>
+    </article>
   );
 }
