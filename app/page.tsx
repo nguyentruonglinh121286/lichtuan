@@ -1,52 +1,29 @@
 // app/page.tsx
-export const runtime = 'nodejs'; // ép Node runtime
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-import { headers } from 'next/headers';
-import PrintButton from '@/components/PrintButton';
-import ScheduleDay from '@/components/ScheduleDay';
-
-type Agency = { name?: string; subtitle?: string };
-type Day = any;
-
-function getBaseUrl(): string {
-  const h = headers();
-  const host = h.get('x-forwarded-host') ?? h.get('host') ?? 'localhost:3000';
-  const proto = h.get('x-forwarded-proto') ?? (host.includes('localhost') ? 'http' : 'https');
-  return `${proto}://${host}`;
-}
+// TỪ /app/page.tsx -> /components/...
+import PrintButton from '../components/PrintButton';
+import ScheduleDay from '../components/ScheduleDay';
 
 async function getSchedule() {
-  try {
-    const base = getBaseUrl();
-    const url = new URL('/api/schedule', base);   // luôn là URL tuyệt đối
-    const res = await fetch(url.toString(), { cache: 'no-store' });
+  // Dùng baseUrl tuyệt đối để chạy được cả cục bộ & Vercel
+  const baseUrl = process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL}`
+    : 'http://localhost:3000';
 
-    if (!res.ok) {
-      console.error('Schedule fetch not ok', res.status, res.statusText);
-      return { week: 'Tuần (chưa có dữ liệu)', days: [] };
-    }
-
-    const data = await res.json().catch((e) => {
-      console.error('Schedule JSON parse error', e);
-      return null;
-    });
-
-    return data ?? { week: 'Tuần (chưa có dữ liệu)', days: [] };
-  } catch (err) {
-    console.error('Schedule fetch crash', err);
-    return { week: 'Tuần (chưa có dữ liệu)', days: [] };
-  }
+  const res = await fetch(`${baseUrl}/api/schedule`, { cache: 'no-store' });
+  if (!res.ok) return { week: 'Tuần (chưa có dữ liệu)', days: [] };
+  return res.json();
 }
 
 export default async function Page() {
   const data = await getSchedule();
 
-  const agency: Agency | null = (data?.agency as Agency) ?? null;
+  const agency = data?.agency ?? null;
   const focus: string[] = Array.isArray(data?.focus) ? data.focus : [];
-  const week: string = data?.week ?? 'Tuần (chưa có dữ liệu)';
-  const days: Day[] = Array.isArray(data?.days) ? data.days : [];
+  const week = data?.week ?? 'Tuần (chưa có dữ liệu)';
+  const days = Array.isArray(data?.days) ? data.days : [];
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-8">
@@ -84,10 +61,7 @@ export default async function Page() {
         ))}
         {days.length === 0 && (
           <div className="rounded-md border border-gray-200 bg-white p-6 text-center text-gray-500">
-            Chưa có lịch làm việc.{' '}
-            <a href="/api/schedule" className="text-blue-600 underline">
-              Xem JSON
-            </a>
+            Chưa có lịch làm việc.
           </div>
         )}
       </div>
