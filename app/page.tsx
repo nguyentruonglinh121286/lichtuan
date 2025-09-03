@@ -6,13 +6,11 @@ import PrintButton from '@/components/PrintButton';
 import ScheduleDay from '@/components/ScheduleDay';
 
 async function getSchedule() {
-  const baseUrl =
-    process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : 'http://localhost:3000';
-
-  const res = await fetch(`${baseUrl}/api/schedule`, { cache: 'no-store' });
-  if (!res.ok) return { week: 'Tuần (chưa có dữ liệu)', days: [] };
+  // Dùng relative URL để Next xử lý nội bộ (ổn định trên Vercel/Edge)
+  const res = await fetch('/api/schedule', { cache: 'no-store' });
+  if (!res.ok) {
+    return { week: 'Tuần (chưa có dữ liệu)', days: [] };
+  }
   return res.json();
 }
 
@@ -26,7 +24,6 @@ export default async function Page() {
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-8">
-      {/* Header */}
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight text-blue-700">
