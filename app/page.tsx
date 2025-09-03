@@ -13,20 +13,55 @@ async function getSchedule() {
 
 export default async function Page() {
   const data = await getSchedule();
-  const week = data.week ?? 'Tuần (chưa có dữ liệu)';
-  const days = data.days ?? [];
+
+  const agency = data?.agency ?? null; // {name, subtitle}
+  const focus: string[] = Array.isArray(data?.focus) ? data.focus : [];
+  const week = data?.week ?? 'Tuần (chưa có dữ liệu)';
+  const days = Array.isArray(data?.days) ? data.days : [];
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-8">
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-3xl font-extrabold text-blue-700">LỊCH LÀM VIỆC</h1>
+      {/* Header */}
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-extrabold tracking-tight text-blue-700">
+            {agency?.name ?? 'LỊCH LÀM VIỆC'}
+          </h1>
+          {agency?.subtitle ? (
+            <p className="text-sm text-gray-600">{agency.subtitle}</p>
+          ) : null}
+        </div>
         <PrintButton />
       </div>
-      <p className="mb-6 text-gray-600">{week}</p>
 
-      {Array.isArray(days) && days.map((day:any, idx:number) => (
-        <ScheduleDay key={idx} day={day} />
-      ))}
+      {/* Tuần */}
+      <p className="mb-4 text-[15px] font-medium text-gray-700">{week}</p>
+
+      {/* Trọng tâm tuần */}
+      {focus.length > 0 && (
+        <section className="mb-6 rounded-xl border border-blue-100 bg-blue-50/40 p-4">
+          <h2 className="mb-2 text-base font-semibold text-blue-700">
+            Trọng tâm trong tuần
+          </h2>
+          <ul className="list-disc pl-6 text-sm text-gray-700">
+            {focus.map((f, i) => (
+              <li key={i} className="mb-1">{f}</li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {/* Các ngày trong tuần */}
+      <div className="space-y-6">
+        {days.map((day: any, idx: number) => (
+          <ScheduleDay key={idx} day={day} />
+        ))}
+        {days.length === 0 && (
+          <div className="rounded-md border border-gray-200 bg-white p-6 text-center text-gray-500">
+            Chưa có lịch làm việc.
+          </div>
+        )}
+      </div>
     </main>
   );
 }
