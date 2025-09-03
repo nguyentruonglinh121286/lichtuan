@@ -2,9 +2,48 @@
 @tailwind components;
 @tailwind utilities;
 
-@media print {
-  @page {
-    size: A4 landscape;
-    margin: 10mm;
+/* ========== Base & Theme ========== */
+@layer base {
+  html {
+    @apply scroll-smooth;
   }
+  body {
+    @apply bg-slate-100 text-slate-800 antialiased;
+    background-image: radial-gradient(40rem 40rem at 10% -5%, rgba(56, 189, 248, .15), transparent),
+                      radial-gradient(35rem 35rem at 90% 0%, rgba(59, 130, 246, .12), transparent);
+  }
+}
+
+/* ========== Components ========== */
+@layer components {
+  .btn {
+    @apply inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 hover:shadow transition;
+  }
+  .card {
+    @apply rounded-2xl border border-slate-200 bg-white shadow-sm;
+  }
+}
+
+/* ========== Utilities ========== */
+@layer utilities {
+  .container-narrow {
+    @apply mx-auto max-w-6xl px-4;
+  }
+}
+
+/* ========== Print Styles ========== */
+@media print {
+  body { background: white !important; }
+  .btn, .shadow, .shadow-sm, .shadow-md, .shadow-lg { box-shadow: none !important; }
+
+  header, footer { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+  /* Giữ màu ổn định cho header mỗi ngày khi in */
+  article > div:first-child {
+    background: #0ea5e9 !important; /* sky-600 */
+    color: white !important;
+  }
+
+  /* tránh tràn lề */
+  .container-narrow { max-width: 100% !important; padding: 0 !important; }
 }
