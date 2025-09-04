@@ -1,50 +1,24 @@
 // app/api/schedule/route.ts
-export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 import { NextResponse } from 'next/server';
-// TỪ /app/api/schedule/route.ts -> /app/lib/blob.ts
-import { readScheduleURL } from '../../lib/blob';
+import { readScheduleURL } from '@/app/lib/blob';
 
-const EMPTY = { week: 'Tuần (chưa có dữ liệu)', days: [] as any[] };
-
-export async function GET(req: Request) {
+export async function GET() {
   try {
     const url = await readScheduleURL();
     if (!url) {
-      return NextResponse.json(EMPTY, {
-        headers: { 'Cache-Control': 'no-store' },
-      });
+      return NextResponse.json({ week: 'Tuần (chưa có dữ liệu)', days: [] });
     }
-
-    const blobRes = await fetch(`${url}?t=${Date.now()}`, { cache: 'no-store' });
-    if (!blobRes.ok) {
-      return NextResponse.json(EMPTY, {
-        headers: { 'Cache-Control': 'no-store' },
-      });
+    // Phá cache CDN của Blob
+    const resp = await fetch(`${url}?t=${Date.now()}`, { cache: 'no-store' });
+    if (!resp.ok) {
+      return NextResponse.json({ week: 'Tuần (chưa có dữ liệu)', days: [] });
     }
-
-    const data = await blobRes.json().catch(() => null);
-    const json = data ?? EMPTY;
-
-    const pretty = new URL(req.url).searchParams.get('pretty');
-    const body =
-      pretty && pretty !== '0'
-        ? JSON.stringify(json, null, 2) + '\n'
-        : JSON.stringify(json);
-
-    return new NextResponse(body, {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/json; charset=utf-8',
-        'Cache-Control': 'no-store',
-      },
-    });
-  } catch (err) {
-    console.error('Schedule API error:', err);
-    return NextResponse.json(EMPTY, {
-      headers: { 'Cache-Control': 'no-store' },
-    });
+    const json = await resp.json();
+    return NextResponse.json(json);
+  } catch {
+    return NextResponse.json({ week: 'Tuần (chưa có dữ liệu)', days: [] });
   }
 }
