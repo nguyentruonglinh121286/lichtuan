@@ -1,40 +1,39 @@
 // app/page.tsx
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
-// để chắc chắn Next không cache ở cấp fetch
 export const fetchCache = 'force-no-store';
 
 import PrintButton from '@/components/PrintButton';
 import ScheduleDay from '@/components/ScheduleDay';
+import { readScheduleURL } from '@/app/lib/blob';
 
 async function getSchedule() {
   try {
-    // ❗ Quan trọng: dùng đường dẫn tương đối để Next tự dùng đúng origin của deployment
-    const res = await fetch('/api/schedule', { cache: 'no-store' });
+    const url = await readScheduleURL();
+    if (!url) {
+      return { agency: null, focus: [], week: 'Tuần (chưa có dữ liệu)', days: [] as any[] };
+    }
+    // thêm query để phá cache CDN của Blob
+    const res = await fetch(`${url}?t=${Date.now()}`, { cache: 'no-store' });
     if (!res.ok) {
-      return { week: 'Tuần (chưa có dữ liệu)', days: [] as any[], focus: [], agency: null };
+      return { agency: null, focus: [], week: 'Tuần (chưa có dữ liệu)', days: [] as any[] };
     }
     const json = await res.json();
 
-    // Phòng dữ liệu thiếu field
     return {
+      agency: json?.agency ?? null,
+      focus: Array.isArray(json?.focus) ? json.focus : [],
       week: json?.week ?? 'Tuần (chưa có dữ liệu)',
       days: Array.isArray(json?.days) ? json.days : [],
-      focus: Array.isArray(json?.focus) ? json.focus : [],
-      agency: json?.agency ?? null,
     };
   } catch {
-    return { week: 'Tuần (chưa có dữ liệu)', days: [] as any[], focus: [], agency: null };
+    return { agency: null, focus: [], week: 'Tuần (chưa có dữ liệu)', days: [] as any[] };
   }
 }
 
 export default async function Page() {
   const data = await getSchedule();
-
-  const agency = data.agency;
-  const focus = data.focus;
-  const week = data.week;
-  const days = data.days;
+  const { agency, focus, week, days } = data;
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-8">
@@ -55,13 +54,9 @@ export default async function Page() {
 
       {focus.length > 0 && (
         <section className="mb-6 rounded-xl border border-blue-100 bg-blue-50/40 p-4">
-          <h2 className="mb-2 text-base font-semibold text-blue-700">
-            Trọng tâm trong tuần
-          </h2>
+          <h2 className="mb-2 text-base font-semibold text-blue-700">Trọng tâm trong tuần</h2>
           <ul className="list-disc pl-6 text-sm text-gray-700">
-            {focus.map((f: string, i: number) => (
-              <li key={i}>{f}</li>
-            ))}
+            {focus.map((f: string, i: number) => <li key={i}>{f}</li>)}
           </ul>
         </section>
       )}
@@ -70,7 +65,6 @@ export default async function Page() {
         {days.map((day: any, idx: number) => (
           <ScheduleDay key={idx} day={day} />
         ))}
-
         {days.length === 0 && (
           <div className="rounded-md border border-gray-200 bg-white p-6 text-center text-gray-500">
             Chưa có lịch làm việc.
