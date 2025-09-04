@@ -2,23 +2,28 @@
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-// TỪ /app/page.tsx -> /components/...
-import PrintButton from '../components/PrintButton';
-import ScheduleDay from '../components/ScheduleDay';
+import PrintButton from '@/components/PrintButton';
+import ScheduleDay from '@/components/ScheduleDay';
+import { readScheduleURL } from '@/app/lib/blob';
 
-async function getSchedule() {
-  // Dùng baseUrl tuyệt đối để chạy được cả cục bộ & Vercel
-  const baseUrl = process.env.VERCEL_URL
-    ? `https://${process.env.VERCEL_URL}`
-    : 'http://localhost:3000';
+// Đọc trực tiếp từ Vercel Blob thay vì fetch /api/schedule
+async function getScheduleDirect() {
+  try {
+    const url = await readScheduleURL();
+    if (!url) return { week: 'Tuần (chưa có dữ liệu)', days: [] as any[] };
 
-  const res = await fetch(`${baseUrl}/api/schedule`, { cache: 'no-store' });
-  if (!res.ok) return { week: 'Tuần (chưa có dữ liệu)', days: [] };
-  return res.json();
+    const res = await fetch(`${url}?t=${Date.now()}`, { cache: 'no-store' });
+    if (!res.ok) return { week: 'Tuần (chưa có dữ liệu)', days: [] as any[] };
+
+    const json = await res.json().catch(() => null);
+    return json ?? { week: 'Tuần (chưa có dữ liệu)', days: [] as any[] };
+  } catch {
+    return { week: 'Tuần (chưa có dữ liệu)', days: [] as any[] };
+  }
 }
 
 export default async function Page() {
-  const data = await getSchedule();
+  const data = await getScheduleDirect();
 
   const agency = data?.agency ?? null;
   const focus: string[] = Array.isArray(data?.focus) ? data.focus : [];
