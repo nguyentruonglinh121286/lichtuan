@@ -1,35 +1,20 @@
-// app/lib/blob.ts
 import { put, list } from '@vercel/blob';
 
-const SCHEDULE_KEY = 'schedule.json';
+// Tên file JSON cố định trên Blob
+const SCHEDULE_FILE = 'schedule.json';
 
-/**
- * Trả về URL public của file schedule.json nếu tồn tại
- */
-export async function readScheduleURL(): Promise<string | null> {
-  try {
-    const blobs = await list();
-    const found = blobs.blobs.find((b) => b.pathname === SCHEDULE_KEY);
-    return found ? found.url : null;
-  } catch (err) {
-    console.error('readScheduleURL error:', err);
-    return null;
-  }
+// Ghi dữ liệu JSON lên Blob
+export async function writeScheduleJSON(data: any) {
+  const blob = await put(SCHEDULE_FILE, JSON.stringify(data, null, 2), {
+    access: 'public',
+    contentType: 'application/json',
+  });
+  return blob; // trả về { url, pathname, size, ... }
 }
 
-/**
- * Ghi đè file schedule.json với nội dung JSON mới
- */
-export async function writeScheduleJSON(data: any) {
-  try {
-    const blob = await put(SCHEDULE_KEY, JSON.stringify(data, null, 2), {
-      access: 'public',
-      addRandomSuffix: false, // luôn giữ tên schedule.json
-      contentType: 'application/json',
-    });
-    return blob;
-  } catch (err) {
-    console.error('writeScheduleJSON error:', err);
-    throw err;
-  }
+// Lấy URL của file schedule.json trên Blob
+export async function readScheduleURL() {
+  const blobs = await list();
+  const file = blobs.blobs.find(b => b.pathname === SCHEDULE_FILE);
+  return file ? file.url : null;
 }
