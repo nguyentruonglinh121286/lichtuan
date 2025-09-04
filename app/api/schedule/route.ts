@@ -1,4 +1,5 @@
 // app/api/schedule/route.ts
+export const runtime = 'nodejs';          // QUAN TRỌNG: tránh Edge gây lỗi undici
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
@@ -11,14 +12,19 @@ export async function GET() {
     if (!url) {
       return NextResponse.json({ week: 'Tuần (chưa có dữ liệu)', days: [] });
     }
-    // Phá cache CDN của Blob
-    const resp = await fetch(`${url}?t=${Date.now()}`, { cache: 'no-store' });
-    if (!resp.ok) {
+
+    // phá cache CDN của Blob
+    const res = await fetch(`${url}?t=${Date.now()}`, { cache: 'no-store' });
+    if (!res.ok) {
       return NextResponse.json({ week: 'Tuần (chưa có dữ liệu)', days: [] });
     }
-    const json = await resp.json();
-    return NextResponse.json(json);
-  } catch {
+
+    const json = await res.json();
+    return NextResponse.json(json, {
+      headers: { 'Cache-Control': 'no-store, max-age=0' },
+    });
+  } catch (err) {
+    console.error('Schedule API error:', err);
     return NextResponse.json({ week: 'Tuần (chưa có dữ liệu)', days: [] });
   }
 }
