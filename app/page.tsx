@@ -3,37 +3,51 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 export const fetchCache = 'force-no-store';
 
+import { headers } from 'next/headers';
 import PrintButton from '@/components/PrintButton';
 import ScheduleDay from '@/components/ScheduleDay';
-import { readScheduleURL } from '@/app/lib/blob';
+
+async function getBaseUrl() {
+  const h = headers();
+  // Khi qua Vercel, các header này luôn có
+  const host = h.get('x-forwarded-host') ?? h.get('host') ?? process.env.VERCEL_URL;
+  const proto = h.get('x-forwarded-proto') ?? 'https';
+  if (!host) return null;
+  return `${proto}://${host}`;
+}
 
 async function getSchedule() {
   try {
-    const url = await readScheduleURL();
-    if (!url) {
+    const base = await getBaseUrl();
+    if (!base) {
       return { agency: null, focus: [], week: 'Tuần (chưa có dữ liệu)', days: [] as any[] };
     }
-    // thêm query để phá cache CDN của Blob
-    const res = await fetch(`${url}?t=${Date.now()}`, { cache: 'no-store' });
+
+    // gọi API bằng URL tuyệt đối và phá cache
+    const res = await fetch(`${base}/api/schedule?t=${Date.now()}`, {
+      cache: 'no-store',
+      // đảm bảo Next không cache SSG
+      next: { revalidate: 0 },
+    });
+
     if (!res.ok) {
       return { agency: null, focus: [], week: 'Tuần (chưa có dữ liệu)', days: [] as any[] };
     }
-    const json = await res.json();
 
+    const json = await res.json();
     return {
       agency: json?.agency ?? null,
       focus: Array.isArray(json?.focus) ? json.focus : [],
       week: json?.week ?? 'Tuần (chưa có dữ liệu)',
       days: Array.isArray(json?.days) ? json.days : [],
     };
-  } catch {
+  } catch (e) {
     return { agency: null, focus: [], week: 'Tuần (chưa có dữ liệu)', days: [] as any[] };
   }
 }
 
 export default async function Page() {
-  const data = await getSchedule();
-  const { agency, focus, week, days } = data;
+  const { agency, focus, week, days } = await getSchedule();
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-8">
@@ -54,9 +68,13 @@ export default async function Page() {
 
       {focus.length > 0 && (
         <section className="mb-6 rounded-xl border border-blue-100 bg-blue-50/40 p-4">
-          <h2 className="mb-2 text-base font-semibold text-blue-700">Trọng tâm trong tuần</h2>
+          <h2 className="mb-2 text-base font-semibold text-blue-700">
+            Trọng tâm trong tuần
+          </h2>
           <ul className="list-disc pl-6 text-sm text-gray-700">
-            {focus.map((f: string, i: number) => <li key={i}>{f}</li>)}
+            {focus.map((f: string, i: number) => (
+              <li key={i}>{f}</li>
+            ))}
           </ul>
         </section>
       )}
