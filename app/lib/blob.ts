@@ -1,20 +1,15 @@
 import { put, list } from '@vercel/blob';
 
-// Tên file JSON cố định trên Blob
-const SCHEDULE_FILE = 'schedule.json';
+const FILE_NAME = 'schedule.json';
 
-// Ghi dữ liệu JSON lên Blob
-export async function writeScheduleJSON(data: any) {
-  const blob = await put(SCHEDULE_FILE, JSON.stringify(data, null, 2), {
-    access: 'public',
-    contentType: 'application/json',
-  });
-  return blob; // trả về { url, pathname, size, ... }
+export async function writeScheduleJSON(data: any): Promise<string> {
+  const json = JSON.stringify(data, null, 2);
+  const { url } = await put(FILE_NAME, json, { access: 'public', addRandomSuffix: false, contentType: 'application/json' });
+  return url;
 }
 
-// Lấy URL của file schedule.json trên Blob
-export async function readScheduleURL() {
-  const blobs = await list();
-  const file = blobs.blobs.find(b => b.pathname === SCHEDULE_FILE);
-  return file ? file.url : null;
+export async function readScheduleURL(): Promise<string | null> {
+  const items = await list();
+  const f = items.blobs.find(b => b.pathname === FILE_NAME);
+  return f?.url ?? null;
 }
