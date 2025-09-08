@@ -1,94 +1,103 @@
-// app/page.tsx
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
-export const fetchCache = 'force-no-store';
 
-import { headers } from 'next/headers';
+import Link from 'next/link';
 import PrintButton from '@/components/PrintButton';
 import ScheduleDay from '@/components/ScheduleDay';
 
-async function getBaseUrl() {
-  const h = headers();
-  // Khi qua Vercel, các header này luôn có
-  const host = h.get('x-forwarded-host') ?? h.get('host') ?? process.env.VERCEL_URL;
-  const proto = h.get('x-forwarded-proto') ?? 'https';
-  if (!host) return null;
-  return `${proto}://${host}`;
+async function getSchedule() {
+  const baseUrl =
+    process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : 'http://localhost:3000';
+
+  const res = await fetch(`${baseUrl}/api/schedule`, { cache: 'no-store' });
+  if (!res.ok) return { week: 'Tuần (chưa có dữ liệu)', days: [] as any[] };
+  return res.json();
 }
 
-async function getSchedule() {
-  try {
-    const base = await getBaseUrl();
-    if (!base) {
-      return { agency: null, focus: [], week: 'Tuần (chưa có dữ liệu)', days: [] as any[] };
-    }
-
-    // gọi API bằng URL tuyệt đối và phá cache
-    const res = await fetch(`${base}/api/schedule?t=${Date.now()}`, {
-      cache: 'no-store',
-      // đảm bảo Next không cache SSG
-      next: { revalidate: 0 },
-    });
-
-    if (!res.ok) {
-      return { agency: null, focus: [], week: 'Tuần (chưa có dữ liệu)', days: [] as any[] };
-    }
-
-    const json = await res.json();
-    return {
-      agency: json?.agency ?? null,
-      focus: Array.isArray(json?.focus) ? json.focus : [],
-      week: json?.week ?? 'Tuần (chưa có dữ liệu)',
-      days: Array.isArray(json?.days) ? json.days : [],
-    };
-  } catch (e) {
-    return { agency: null, focus: [], week: 'Tuần (chưa có dữ liệu)', days: [] as any[] };
-  }
+function CheckIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" {...props}>
+      <path
+        fillRule="evenodd"
+        d="M16.707 5.293a1 1 0 010 1.414l-7.25 7.25a1 1 0 01-1.414 0L3.293 9.957a1 1 0 111.414-1.414l3.043 3.043 6.543-6.543a1 1 0 011.414 0z"
+        clipRule="evenodd"
+      />
+    </svg>
+  );
 }
 
 export default async function Page() {
-  const { agency, focus, week, days } = await getSchedule();
+  const data = await getSchedule();
+
+  const agency = data?.agency ?? null;
+  const focus: string[] = Array.isArray(data?.focus) ? data.focus : [];
+  const week = data?.week ?? 'Tuần (chưa có dữ liệu)';
+  const days = Array.isArray(data?.days) ? data.days : [];
 
   return (
-    <main className="mx-auto max-w-5xl px-4 py-8">
+    <main className="page-wrap">
       {/* Header */}
-      <div className="mb-6 flex items-center justify-between">
+      <header className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-blue-700">
+          <h1 className="page-title">
             {agency?.name ?? 'LỊCH LÀM VIỆC'}
           </h1>
           {agency?.subtitle && (
-            <p className="text-sm text-gray-600">{agency.subtitle}</p>
+            <p className="page-subtitle">{agency.subtitle}</p>
           )}
         </div>
-        <PrintButton />
-      </div>
 
-      <p className="mb-4 text-[15px] font-medium text-gray-700">{week}</p>
+        <div className="no-print flex items-center gap-2">
+          <Link
+            href="/admin"
+            className="btn btn-secondary"
+            aria-label="Mở trang soạn & publish lịch"
+          >
+            In
+          </Link>
+          <PrintButton />
+        </div>
+      </header>
 
-      {focus.length > 0 && (
-        <section className="mb-6 rounded-xl border border-blue-100 bg-blue-50/40 p-4">
-          <h2 className="mb-2 text-base font-semibold text-blue-700">
-            Trọng tâm trong tuần
-          </h2>
-          <ul className="list-disc pl-6 text-sm text-gray-700">
-            {focus.map((f: string, i: number) => (
-              <li key={i}>{f}</li>
+      {/* Week pill */}
+      <p className="week-pill">{week}</p>
+
+      {/* Focus / Nội dung trọng tâm */}
+      <section className="card">
+        <h2 className="section-title">
+          Nội dung trọng tâm
+        </h2>
+
+        {focus.length > 0 ? (
+          <ul className="focus-list">
+            {focus.map((item, i) => (
+              <li key={i}>
+                <CheckIcon className="focus-check" />
+                <span>{item}</span>
+              </li>
             ))}
           </ul>
-        </section>
-      )}
+        ) : (
+          <div className="empty-state">Chưa có nội dung trọng tâm.</div>
+        )}
+      </section>
 
+      {/* Days */}
       <div className="space-y-6">
         {days.map((day: any, idx: number) => (
           <ScheduleDay key={idx} day={day} />
         ))}
+
         {days.length === 0 && (
-          <div className="rounded-md border border-gray-200 bg-white p-6 text-center text-gray-500">
-            Chưa có lịch làm việc.
-          </div>
+          <div className="card empty-state">Chưa có lịch làm việc.</div>
         )}
       </div>
+
+      <footer className="mt-10 mb-6 text-center text-xs text-gray-500 print:hidden">
+        Dữ liệu được lấy từ <code>schedule.json</code> (Vercel Blob) – cập nhật tại trang <code>/admin</code>.
+      </footer>
     </main>
   );
 }
