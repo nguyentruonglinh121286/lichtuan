@@ -1,20 +1,40 @@
-export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 import { NextResponse } from 'next/server';
-import { writeScheduleJSON } from '../../../lib/blob';
+import { writeScheduleJSON, readScheduleURL } from '@/app/lib/blob';
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    if (!body || typeof body !== 'object') {
-      return NextResponse.json({ ok: false, message: 'Invalid JSON body' }, { status: 400 });
-    }
-    const publicUrl = await writeScheduleJSON(body);
-    return NextResponse.json({ ok: true, url: publicUrl }, { status: 200 });
+    const url = await writeScheduleJSON(body);
+
+    // trả kèm url hiện tại để bạn có thể mở test nhanh
+    const nowUrl = await readScheduleURL();
+
+    return NextResponse.json(
+      { ok: true, url, nowUrl, message: 'Published' },
+      {
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate',
+          Pragma: 'no-cache',
+          Expires: '0',
+          'Content-Type': 'application/json; charset=utf-8',
+        },
+      },
+    );
   } catch (e: any) {
-    console.error('Publish error:', e);
-    return NextResponse.json({ ok: false, message: e?.message ?? 'Publish failed' }, { status: 500 });
+    return NextResponse.json(
+      { ok: false, message: e?.message ?? 'Publish error' },
+      {
+        status: 500,
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate',
+          Pragma: 'no-cache',
+          Expires: '0',
+          'Content-Type': 'application/json; charset=utf-8',
+        },
+      },
+    );
   }
 }
