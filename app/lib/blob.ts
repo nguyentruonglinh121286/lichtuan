@@ -3,8 +3,7 @@ import { put, list } from '@vercel/blob';
 
 /**
  * Ghi đè trực tiếp lên 1 key cố định: schedule.json
- * - addRandomSuffix: false => luôn dùng đúng tên file
- * - cacheControl: 'no-store' => không bị cache CDN
+ * addRandomSuffix: false => luôn dùng đúng tên file
  */
 export async function writeScheduleJSON(data: any) {
   const body = JSON.stringify(data, null, 2);
@@ -13,15 +12,14 @@ export async function writeScheduleJSON(data: any) {
     access: 'public',
     addRandomSuffix: false, // QUAN TRỌNG: không tạo hậu tố ngẫu nhiên
     contentType: 'application/json; charset=utf-8',
-    cacheControl: 'no-store, no-cache, must-revalidate',
+    // LƯU Ý: Một số version @vercel/blob không có 'cacheControl' => không set ở đây
   });
 
-  return url; // URL cố định cho schedule.json
+  return url; // URL cố định
 }
 
 /**
  * Lấy URL hiện tại của schedule.json
- * (Nếu đã viết theo writeScheduleJSON ở trên thì luôn là 1 URL)
  */
 export async function readScheduleURL(): Promise<string | null> {
   try {
