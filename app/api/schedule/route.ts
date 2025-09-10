@@ -10,41 +10,26 @@ export async function GET() {
     if (!url) {
       return NextResponse.json(
         { week: 'Tuần (chưa có dữ liệu)', days: [] },
-        {
-          headers: {
-            'Cache-Control': 'no-store, no-cache, must-revalidate',
-            Pragma: 'no-cache',
-            Expires: '0',
-            'Content-Type': 'application/json; charset=utf-8',
-          },
-        },
+        { headers: noCacheHeaders() },
       );
     }
-
-    // Phá cache của Blob/CDN bằng query string
     const blobRes = await fetch(`${url}?t=${Date.now()}`, { cache: 'no-store' });
     const json = await blobRes.json();
-
-    return NextResponse.json(json, {
-      headers: {
-        'Cache-Control': 'no-store, no-cache, must-revalidate',
-        Pragma: 'no-cache',
-        Expires: '0',
-        'Content-Type': 'application/json; charset=utf-8',
-      },
-    });
+    return NextResponse.json(json, { headers: noCacheHeaders() });
   } catch (err) {
     console.error('Schedule API error:', err);
     return NextResponse.json(
       { week: 'Tuần (chưa có dữ liệu)', days: [] },
-      {
-        headers: {
-          'Cache-Control': 'no-store, no-cache, must-revalidate',
-          Pragma: 'no-cache',
-          Expires: '0',
-          'Content-Type': 'application/json; charset=utf-8',
-        },
-      },
+      { headers: noCacheHeaders() },
     );
   }
+}
+
+function noCacheHeaders() {
+  return {
+    'Cache-Control': 'no-store, no-cache, must-revalidate',
+    Pragma: 'no-cache',
+    Expires: '0',
+    'Content-Type': 'application/json; charset=utf-8',
+  };
 }
