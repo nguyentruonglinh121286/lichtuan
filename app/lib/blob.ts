@@ -2,8 +2,8 @@
 import { put, list } from '@vercel/blob';
 
 /**
- * Ghi đè trực tiếp lên 1 key cố định: schedule.json
- * addRandomSuffix: false => luôn dùng đúng tên file
+ * Ghi đè trực tiếp lên key cố định: schedule.json
+ * addRandomSuffix: false => luôn dùng đúng tên file (không phát sinh hậu tố)
  */
 export async function writeScheduleJSON(data: any) {
   const body = JSON.stringify(data, null, 2);
@@ -12,7 +12,7 @@ export async function writeScheduleJSON(data: any) {
     access: 'public',
     addRandomSuffix: false, // QUAN TRỌNG: không tạo hậu tố ngẫu nhiên
     contentType: 'application/json; charset=utf-8',
-    // LƯU Ý: Một số version @vercel/blob không có 'cacheControl' => không set ở đây
+    // KHÔNG có 'cacheControl' trong PutCommandOptions của @vercel/blob phiên bản bạn đang dùng
   });
 
   return url; // URL cố định
