@@ -7,9 +7,13 @@ import { writeScheduleJSON, readScheduleURL } from '@/app/lib/blob';
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const url = await writeScheduleJSON(body);
 
-    // trả kèm url hiện tại để bạn có thể mở test nhanh
+    // Validate rất cơ bản (tuần nào cũng có “week” + “days”)
+    if (!body || typeof body !== 'object' || !body.week || !Array.isArray(body.days)) {
+      return NextResponse.json({ ok: false, message: 'JSON không đúng định dạng' }, { status: 400 });
+    }
+
+    const url = await writeScheduleJSON(body);
     const nowUrl = await readScheduleURL();
 
     return NextResponse.json(
